@@ -32,5 +32,3 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: Devi123
       POSTGRES_DB: my_finance
-    volumes:
-      - pgdata:/var/lib/postgresql/data
