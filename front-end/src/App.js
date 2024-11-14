@@ -38,7 +38,7 @@ function App() {
     <div className="App">
       <h1>Three Tier APP With React + Node + Postgres...</h1>
       <p>Deployed successfully</p>
-
+      <p>Git hub hook as build trigger!!</p>
       <h2>Add User</h2>
       <form onSubmit={handleAddUser}>
         <input
