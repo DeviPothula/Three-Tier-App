@@ -3,14 +3,18 @@ services:
   backend:
     build:
       context: ./Backend
+      dockerfile: Dockerfile
     environment:
       - DB_URL=postgres://postgres:Devi123@db:5432/my_finance
     depends_on:
       - db
+    image: backend:latest # This will be tagged as 'backend:latest' for ECR push
 
   frontend:
     build:
       context: ./front-end
+      dockerfile: Dockerfile
+    image: frontend:latest # This will be tagged as 'frontend:latest' for ECR push
 
   nginx:
     image: nginx:latest
