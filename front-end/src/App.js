@@ -40,6 +40,7 @@ function App() {
       <p>Deployed successfully</p>
       <p>Git hub hook as build trigger!!</p>
       <h2>Add User</h2>
+      <p>email notification added</p>
       <form onSubmit={handleAddUser}>
         <input
           type="text"

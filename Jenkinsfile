@@ -5,6 +5,7 @@ pipeline {
         ECR_URL = '535002868961.dkr.ecr.ap-south-1.amazonaws.com' // AWS ECR base URL
         ECR_REACT_REPO = "${ECR_URL}/frontend/frontend"
         ECR_NODE_REPO = "${ECR_URL}/backend/backend"
+        ECR_DB_REPO = "${ECR_URL}/db/db"
         EC2_IP = '13.203.77.71' // Your EC2 IP address
         EC2_USER = 'ubuntu'  // EC2 username 
     }
@@ -74,7 +75,7 @@ pipeline {
                                 # aws ecr get-login-password --region ${ECR_REGION} | docker login --username AWS --password-stdin ${ECR_URL}
                                 # Pull images from ECR and start containers
                                 # docker-compose pull
-                                docker-compose up -d
+                                docker compose up -d
                             '
                         """
                     }
@@ -83,19 +84,39 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            // Clean up Docker Compose on the EC2 instance after deployment
-            sshagent(['ec2-ssh-key']) {
-                sh """
-                    ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} '
-                        cd /home/ubuntu/Three-Tier-App
-                        docker-compose down
-                    '
-                """
-            }
-            // Clean up the Jenkins workspace after the pipeline runs
-            deleteDir()
+   post {
+    success {
+        // Print a success message if deployment succeeds
+        echo 'Deployment succeeded'
+    }
+    failure {
+        // Clean up Docker Compose on the EC2 instance only on failure
+        sshagent(['ec2-ssh-key']) {
+            sh """
+                ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} '
+                    cd /home/ubuntu/Three-Tier-App
+                    docker-compose down
+                '
+            """
         }
     }
+    always {
+        // Clean up the Jenkins workspace after the pipeline runs, regardless of success or failure
+        emailext(
+                subject: "Jenkins Build: ${currentBuild.fullDisplayName}",
+                body: """<p>Build Details:</p>
+                         <ul>
+                           <li>Status: ${currentBuild.currentResult}</li>
+                           <li>Project: ${env.JOB_NAME}</li>
+                           <li>Build Number: ${env.BUILD_NUMBER}</li>
+                           <li>Build URL: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></li>
+                         </ul>""",
+                recipientProviders: [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider']],
+                to:"devikapothula597@gmail.com",
+                mimeType: 'text/html'
+            )
+        
+        cleanWs()
+    }
+}
 }
